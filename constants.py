@@ -3,10 +3,11 @@
 # the WPILib BSD license file in the root directory of this project.
 
 import math
-import units
+from rev import SparkMaxConfig
 from wpimath.geometry import Translation2d
-from wpimath.kinematics import SwerveDriveKinematics
+from wpimath.kinematics import SwerveDrive4Kinematics
 from wpimath.trajectory import TrapezoidProfileRadians
+from wpimath.units import inchesToMeters
 
 class NeoMotorConstants:
     kFreeSpeedRpm = 5676
@@ -20,10 +21,10 @@ class DriveConstants:
     kMagnitudeSlewRate = 1.8  # pourcentage par seconde (1 = 100%)
     kRotationalSlewRate = 2.0  # pourcentage par seconde (1 = 100%)
     # CConfiguration du châssis
-    kTrackWidth = units.inchesToMeters(26.5)  # Distance entre les centres des roues droite et gauche sur le robot (mètres)
-    kWheelBase = units.inchesToMeters(26.5)  # Distance entre les roues avant et arrière sur le robot (mètres)
+    kTrackWidth = inchesToMeters(26.5)  # Distance entre les centres des roues droite et gauche sur le robot (mètres)
+    kWheelBase = inchesToMeters(26.5)  # Distance entre les roues avant et arrière sur le robot (mètres)
 
-    kDriveKinematics = SwerveDriveKinematics(
+    kDriveKinematics = SwerveDrive4Kinematics(
         Translation2d(kWheelBase / 2, kTrackWidth / 2),
         Translation2d(kWheelBase / 2, -kTrackWidth / 2),
         Translation2d(-kWheelBase / 2, kTrackWidth / 2),
@@ -62,7 +63,7 @@ class ModuleConstants:
 
     # Calculs nécessaires pour les facteurs de conversion du moteur de conduite et l'avance
     kDrivingMotorFreeSpeedRps = NeoMotorConstants.kFreeSpeedRpm / 60
-    kWheelDiameterMeters = units.inchesToMeters(3)  # 3 pouces de diamètre de roue
+    kWheelDiameterMeters = inchesToMeters(3)  # 3 pouces de diamètre de roue
     kWheelCircumferenceMeters = kWheelDiameterMeters * math.pi
     # 45 dents sur l'engrenage conique de la roue, 22 dents sur l'engrenage droit de première étape, 15 dents sur le pignon conique (google translate qui carry)
     kDrivingMotorReduction = (45.0 * 22) / (kDrivingMotorPinionTeeth * 15)
@@ -90,8 +91,8 @@ class ModuleConstants:
     kTurningMinOutput = -1
     kTurningMaxOutput = 1
 
-    kDrivingMotorIdleMode = "brake"  # peut être "brake" ou "coast"
-    kTurningMotorIdleMode = "brake"  # peut être "brake" ou "coast"
+    kDrivingMotorIdleMode = SparkMaxConfig.IdleMode.kBrake  # peut être "brake" ou "coast"
+    kTurningMotorIdleMode = SparkMaxConfig.IdleMode.kBrake  # peut être "brake" ou "coast"
 
     kDrivingMotorCurrentLimit = 50  # ampères
     kTurningMotorCurrentLimit = 20  # ampères

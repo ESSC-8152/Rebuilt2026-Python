@@ -1,10 +1,11 @@
-import MAXSwerveModule
+from subsystems import MAXSwerveModule
 
 from wpimath.estimator import SwerveDrive4PoseEstimator
-from wpimath.kinematics import SwerveDriveKinematics, ChassisSpeeds
+from wpimath.kinematics import ChassisSpeeds, SwerveModuleState
 from wpimath.geometry import Rotation2d, Pose2d
 from wpilib import Field2d, SmartDashboard, DriverStation
 from wpimath import applyDeadband
+
 from navx import AHRS
 
 from commands2 import Subsystem
@@ -104,7 +105,7 @@ class conduireSubsystem(Subsystem):
             
         xSpeedDelivered = xSpeed * DriveConstants.kMaxSpeedMetersPerSecond
         ySpeedDelivered = ySpeed * DriveConstants.kMaxSpeedMetersPerSecond
-        rotDelivered = rot * DriveConstants.kMaxAngularSpeedRadiansPerSecond
+        rotDelivered = rot * DriveConstants.kMaxAngularSpeed
         
         invert = -1
         
@@ -113,7 +114,7 @@ class conduireSubsystem(Subsystem):
                 xSpeedDelivered * invert,
                 ySpeedDelivered * invert,
                 rotDelivered,
-                self.getPose().getRotation()
+                self.getPose().rotation()
             )
         else:
             speeds = ChassisSpeeds(
@@ -121,22 +122,26 @@ class conduireSubsystem(Subsystem):
                 ySpeedDelivered,
                 rotDelivered
             )
+        
+        # Convertir les vitesses du châssis en états de module
+        swerveModuleStates = DriveConstants.kDriveKinematics.toSwerveModuleStates(speeds)
+        self.setModulesStates(swerveModuleStates)
             
     def stop(self):
         # Arrête tous les modules swerve
         self.setModulesStates((
-            MAXSwerveModule.SwerveModuleState(0, Rotation2d(0)),
-            MAXSwerveModule.SwerveModuleState(0, Rotation2d(0)),
-            MAXSwerveModule.SwerveModuleState(0, Rotation2d(0)),
-            MAXSwerveModule.SwerveModuleState(0, Rotation2d(0))
+            SwerveModuleState(0, Rotation2d(0)),
+            SwerveModuleState(0, Rotation2d(0)),
+            SwerveModuleState(0, Rotation2d(0)),
+            SwerveModuleState(0, Rotation2d(0))
         ))
         
     def setXFormation(self):
         # Configure les modules swerve en formation "X" pour stabiliser le robot
-        self.avantGauche.setDesiredState(MAXSwerveModule.SwerveModuleState(0, Rotation2d.fromDegrees(45)))
-        self.avantDroit.setDesiredState(MAXSwerveModule.SwerveModuleState(0, Rotation2d.fromDegrees(-45)))
-        self.arriereGauche.setDesiredState(MAXSwerveModule.SwerveModuleState(0, Rotation2d.fromDegrees(-45)))
-        self.arriereDroit.setDesiredState(MAXSwerveModule.SwerveModuleState(0, Rotation2d.fromDegrees(45)))
+        self.avantGauche.setDesiredState(SwerveModuleState(0, Rotation2d.fromDegrees(45)))
+        self.avantDroit.setDesiredState(SwerveModuleState(0, Rotation2d.fromDegrees(-45)))
+        self.arriereGauche.setDesiredState(SwerveModuleState(0, Rotation2d.fromDegrees(-45)))
+        self.arriereDroit.setDesiredState(SwerveModuleState(0, Rotation2d.fromDegrees(45)))
         
     # ------------------Pose estimator---------------------- #    
     def getPose(self) -> Pose2d:
@@ -182,10 +187,10 @@ class conduireSubsystem(Subsystem):
     def getChassisSpeeds(self) -> ChassisSpeeds:
         # Retourne les vitesses du châssis pour le PathPlanner
         return DriveConstants.kDriveKinematics.toChassisSpeeds(
-            self.avantDroit.getState(),
             self.avantGauche.getState(),
-            self.arriereDroit.getState(),
-            self.arriereGauche.getState()
+            self.avantDroit.getState(),
+            self.arriereGauche.getState(),
+            self.arriereDroit.getState()
         )
         
     def conduireChassis(self, chassisSpeeds: ChassisSpeeds):

@@ -1,30 +1,35 @@
-from wpilib import XboxController
+from wpilib import XboxController, Compressor, PneumaticsModuleType
 from wpimath import applyDeadband
-from constants import OIConstants
+
+from constants import OIConstants, DriveConstants
 from subsystems.conduireSubsystem import conduireSubsystem
 from commands2 import RunCommand, button
+
 
 class RobotContainer:
     def __init__(self):
         # init des subsystems
         self.m_conduire = conduireSubsystem()
-        
+
+        self.m_compressor = Compressor(PneumaticsModuleType.CTREPCM)
+
         self.m_mannetteDriver = XboxController(OIConstants.kDriverControllerPort)
         
         self.m_conduire.setDefaultCommand(
             RunCommand(
                lambda: self.m_conduire.conduire(
-                    -applyDeadband(self.m_mannetteDriver.getLeftY(), OIConstants.kDriveDeadband)*0.1,
-                    -applyDeadband(self.m_mannetteDriver.getLeftX(), OIConstants.kDriveDeadband)*0.1,
-                    -applyDeadband(self.m_mannetteDriver.getRightX(), OIConstants.kDriveDeadband)*0.3,
+                    applyDeadband(self.m_mannetteDriver.getLeftY(), OIConstants.kDriveDeadband)*DriveConstants.kSpeedMuliplier,
+                    applyDeadband(self.m_mannetteDriver.getLeftX(), OIConstants.kDriveDeadband)*DriveConstants.kSpeedMuliplier,
+                    applyDeadband(self.m_mannetteDriver.getRightX(), OIConstants.kDriveDeadband)*DriveConstants.kSpeedMuliplier,
                     True,
                     True
             ),self.m_conduire
         ))
-        
+
+        self.m_compressor.enableDigital()
         # Configure button bindings
         self.configureButtonBindings()
-        
+
     def configureButtonBindings(self):
         # Bouton R1 pour mettre le robot en formation X
         button.JoystickButton(self.m_mannetteDriver, XboxController.Button.kRightBumper).whileTrue(
@@ -33,4 +38,3 @@ class RobotContainer:
                 self.m_conduire
             )
         )
-        

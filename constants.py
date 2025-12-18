@@ -13,6 +13,8 @@ class NeoMotorConstants:
     kFreeSpeedRpm = 5676
 
 class DriveConstants:
+    kSpeedMuliplier = 0.6
+
     # Paramêtre de driving - ce n'est pas vraiment la vitesse max du robot juste max allouée
     kMaxSpeedMetersPerSecond = 4.8
     kMaxAngularSpeed = 2 * math.pi  # radians par seconde

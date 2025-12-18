@@ -1,3 +1,6 @@
+from pathplannerlib.util.swerve import SwerveSetpointGenerator
+
+import constants
 from subsystems import MAXSwerveModule
 
 from wpimath.estimator import SwerveDrive4PoseEstimator
@@ -18,6 +21,11 @@ class conduireSubsystem(Subsystem):
         
         # NavX
         self.navx = AHRS.create_spi()
+
+        self.speedMultiplier = DriveConstants.kSpeedMuliplier
+
+        self.setpointGenerator = SwerveSetpointGenerator
+        self.previousSetpoint = None
         
         self.avantGauche = MAXSwerveModule.MAXSwerveModule(
             DriveConstants.kFrontLeftDrivingCanId,
@@ -38,7 +46,9 @@ class conduireSubsystem(Subsystem):
             DriveConstants.kRearRightDrivingCanId,
             DriveConstants.kRearRightTurningCanId,
             DriveConstants.kBackRightChassisAngularOffset)
-        
+
+        self.m_kinematics = DriveConstants.kDriveKinematics
+
         self.poseEstimateur = SwerveDrive4PoseEstimator(
             DriveConstants.kDriveKinematics,
             Rotation2d.fromDegrees(self.getAngle()),
@@ -93,9 +103,9 @@ class conduireSubsystem(Subsystem):
     def conduire(self,xSpeed,ySpeed,rot,fieldRelative,squared):
         deadband = 0.05
         # appliquer deadband
-        xSpeed = -applyDeadband(xSpeed, deadband)
-        ySpeed = -applyDeadband(ySpeed, deadband)
-        rot = -applyDeadband(rot, deadband)
+        xSpeed = applyDeadband(xSpeed, deadband)
+        ySpeed = applyDeadband(ySpeed, deadband)
+        rot = applyDeadband(rot, deadband)
         
         # appliquer squared si jamais ce l'est
         if (squared):
@@ -103,30 +113,30 @@ class conduireSubsystem(Subsystem):
             ySpeed = ySpeed * abs(ySpeed)
             rot = rot * abs(rot)
             
-        xSpeedDelivered = xSpeed * DriveConstants.kMaxSpeedMetersPerSecond
-        ySpeedDelivered = ySpeed * DriveConstants.kMaxSpeedMetersPerSecond
-        rotDelivered = rot * DriveConstants.kMaxAngularSpeed
-        
-        invert = -1
-        
+        xSpeed *= DriveConstants.kMaxSpeedMetersPerSecond
+        ySpeed *= DriveConstants.kMaxSpeedMetersPerSecond
+        rot *= DriveConstants.kMaxAngularSpeed
+
+        xSpeed *= self.speedMultiplier
+        ySpeed *= self.speedMultiplier
+        rot *= self.speedMultiplier
+
         if fieldRelative:
             speeds = ChassisSpeeds.fromFieldRelativeSpeeds(
-                xSpeedDelivered * invert,
-                ySpeedDelivered * invert,
-                rotDelivered,
-                self.getPose().rotation()
+                xSpeed,
+                ySpeed,
+                rot,
+                self.navx.getRotation2d()
             )
         else:
-            speeds = ChassisSpeeds(
-                xSpeedDelivered,
-                ySpeedDelivered,
-                rotDelivered
-            )
+            speeds = ChassisSpeeds(xSpeed, ySpeed, rot)
         
-        # Convertir les vitesses du châssis en états de module
-        swerveModuleStates = DriveConstants.kDriveKinematics.toSwerveModuleStates(speeds)
-        self.setModulesStates(swerveModuleStates)
-            
+        module_states = self.m_kinematics.toSwerveModuleStates(speeds)
+        self.setModulesStates(module_states)
+
+    def multiplierSpeedMultiplier(self, multiplier):
+        self.speedMultiplier *= multiplier
+
     def stop(self):
         # Arrête tous les modules swerve
         self.setModulesStates((
@@ -172,7 +182,6 @@ class conduireSubsystem(Subsystem):
         
     # ------------------Gyro---------------------- #
     def getAngle(self) -> float:
-        # Retourne l'angle actuel du robot à partir du gyroscope
         return self.navx.getAngle()
     
     def getRate(self) -> float:

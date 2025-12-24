@@ -1,6 +1,3 @@
-from pathplannerlib.util.swerve import SwerveSetpointGenerator
-
-import constants
 from subsystems import MAXSwerveModule
 
 from wpimath.estimator import SwerveDrive4PoseEstimator
@@ -22,10 +19,7 @@ class conduireSubsystem(Subsystem):
         # NavX
         self.navx = AHRS.create_spi()
 
-        self.speedMultiplier = DriveConstants.kSpeedMuliplier
-
-        self.setpointGenerator = SwerveSetpointGenerator
-        self.previousSetpoint = None
+        self.multiplicateurVitesse = DriveConstants.kMultiplicateurVitesse
         
         self.avantGauche = MAXSwerveModule.MAXSwerveModule(
             DriveConstants.kFrontLeftDrivingCanId,
@@ -84,14 +78,14 @@ class conduireSubsystem(Subsystem):
         
         SmartDashboard.putNumber("Angle du Gyro", self.getAngle())
         
-    def setModulesStates(self, desiredStates):
-        # Définit les états désirés pour chaque module swerve
-        self.avantGauche.setDesiredState(desiredStates[0])
-        self.avantDroit.setDesiredState(desiredStates[1])
-        self.arriereGauche.setDesiredState(desiredStates[2])
-        self.arriereDroit.setDesiredState(desiredStates[3])
+    def modifierEtatSwerves(self, etatsFinaux):
+        # Définit les états finaux désirés pour chaque module swerve
+        self.avantGauche.setDesiredState(etatsFinaux[0])
+        self.avantDroit.setDesiredState(etatsFinaux[1])
+        self.arriereGauche.setDesiredState(etatsFinaux[2])
+        self.arriereDroit.setDesiredState(etatsFinaux[3])
         
-    def getModulesStates(self):
+    def getEtatsSwerves(self):
         # Retourne les états actuels de chaque module swerve
         return (
             self.avantGauche.getState(),
@@ -100,53 +94,54 @@ class conduireSubsystem(Subsystem):
             self.arriereDroit.getState()
         )
     
-    def conduire(self,xSpeed,ySpeed,rot,fieldRelative,squared):
+    def conduire(self, vitesseX, vitesseY, rot, fieldRelative, squared):
         deadband = 0.05
         # appliquer deadband
-        xSpeed = applyDeadband(xSpeed, deadband)
-        ySpeed = applyDeadband(ySpeed, deadband)
+        vitesseX = applyDeadband(vitesseX, deadband)
+        vitesseY = applyDeadband(vitesseY, deadband)
         rot = applyDeadband(rot, deadband)
         
         # appliquer squared si jamais ce l'est
-        if (squared):
-            xSpeed = xSpeed * abs(xSpeed)
-            ySpeed = ySpeed * abs(ySpeed)
-            rot = rot * abs(rot)
-            
-        xSpeed *= DriveConstants.kMaxSpeedMetersPerSecond
-        ySpeed *= DriveConstants.kMaxSpeedMetersPerSecond
+        if squared:
+            vitesseX *= abs(vitesseX)
+            vitesseY *= abs(vitesseY)
+            rot *= abs(rot)
+
+        vitesseX *= DriveConstants.kMaxSpeedMetersPerSecond
+        vitesseY *= DriveConstants.kMaxSpeedMetersPerSecond
         rot *= DriveConstants.kMaxAngularSpeed
 
-        xSpeed *= self.speedMultiplier
-        ySpeed *= self.speedMultiplier
-        rot *= self.speedMultiplier
+        # Application du multiplicateur de vitesse
+        vitesseX *= self.multiplicateurVitesse
+        vitesseY *= self.multiplicateurVitesse
+        rot *= self.multiplicateurVitesse
 
         if fieldRelative:
-            speeds = ChassisSpeeds.fromFieldRelativeSpeeds(
-                xSpeed,
-                ySpeed,
+            vitesses = ChassisSpeeds.fromFieldRelativeSpeeds(
+                vitesseX,
+                vitesseY,
                 rot,
                 self.navx.getRotation2d()
             )
         else:
-            speeds = ChassisSpeeds(xSpeed, ySpeed, rot)
+            vitesses = ChassisSpeeds(vitesseX, vitesseY, rot)
         
-        module_states = self.m_kinematics.toSwerveModuleStates(speeds)
-        self.setModulesStates(module_states)
+        module_states = self.m_kinematics.toSwerveModuleStates(vitesses)
+        self.modifierEtatSwerves(module_states)
 
-    def multiplierSpeedMultiplier(self, multiplier):
-        self.speedMultiplier *= multiplier
+    def modifierMultiplicateurVitesse(self, multiplicateurVitesse):
+        self.multiplicateurVitesse = multiplicateurVitesse
 
     def stop(self):
         # Arrête tous les modules swerve
-        self.setModulesStates((
+        self.modifierEtatSwerves((
             SwerveModuleState(0, Rotation2d(0)),
             SwerveModuleState(0, Rotation2d(0)),
             SwerveModuleState(0, Rotation2d(0)),
             SwerveModuleState(0, Rotation2d(0))
         ))
         
-    def setXFormation(self):
+    def setFormationArret(self):
         # Configure les modules swerve en formation "X" pour stabiliser le robot
         self.avantGauche.setDesiredState(SwerveModuleState(0, Rotation2d.fromDegrees(45)))
         self.avantDroit.setDesiredState(SwerveModuleState(0, Rotation2d.fromDegrees(-45)))
@@ -154,7 +149,7 @@ class conduireSubsystem(Subsystem):
         self.arriereDroit.setDesiredState(SwerveModuleState(0, Rotation2d.fromDegrees(45)))
         
     # ------------------Pose estimator---------------------- #    
-    def getPose(self) -> Pose2d:
+    def getPosition(self) -> Pose2d:
         # Retourne la pose estimée actuelle du robot
         return self.poseEstimateur.getEstimatedPosition()
     
@@ -207,7 +202,7 @@ class conduireSubsystem(Subsystem):
         targetSpeed = ChassisSpeeds.discretize(chassisSpeeds, 0.02)
         
         swerveModuleStates = DriveConstants.kDriveKinematics.toSwerveModuleStates(targetSpeed)
-        self.setModulesStates(swerveModuleStates)
+        self.modifierEtatSwerves(swerveModuleStates)
         
     def isRedAlliance(self) -> bool:
         # Détermine si le robot est dans l'alliance rouge

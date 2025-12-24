@@ -4,6 +4,11 @@ from wpimath.kinematics import SwerveModuleState, SwerveModulePosition
 
 from Configs import MAXSwerveModule as SparkMaxConfig
 
+#-------------------------------------------------------------------------------
+# Ne pas toucher à cette classe, sauf si une update de wpilib modifie comment
+# les swerves sont codés
+#-------------------------------------------------------------------------------
+
 class MAXSwerveModule:
     def __init__(self, drivingCanId, turningCanId, chassisAngularOffset):
         # Initialisation des composants du swerve

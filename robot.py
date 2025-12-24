@@ -1,10 +1,13 @@
 import commands2
+from commands2.timedcommandrobot import seconds
+from wpilib import TimedRobot
+
 from robotcontainer import RobotContainer
 
-# Launch instructions (do not call wpilib.run here):
-#   Simulation:  py -3.12 -m robotpy sim
-#   Deploy:      py -3.12 -m robotpy deploy
-# In a virtualenv you can use the `robotpy` command directly.
+# Instructions pour deploy (ne pas appeler wpilib.run ici):
+#   Deploy:      py -3.13 -m robotpy deploy
+# Dans un environment virtuel:
+#   Deploy:      robotpy deploy
 
 class MyRobot(commands2.TimedCommandRobot):
     def robotInit(self):
@@ -17,12 +20,9 @@ class MyRobot(commands2.TimedCommandRobot):
         commands2.CommandScheduler.getInstance().cancelAll()
 
 if __name__ == "__main__":
-    # Inform the user they invoked the file directly instead of using the recommended launcher
+    # Ne pas lancer ce ficier pour deploy le code
     import sys
-    print("[INFO] Ce script ne lance plus le robot directement.")
-    print("Utilise plutôt les commandes suivantes:")
-    print("  Simulation : py -3.12 -m robotpy sim")
-    print("  Déploiement : py -3.12 -m robotpy deploy")
-    if len(sys.argv) > 1:
-        print(f"Arguments ignorés: {sys.argv[1:]}")
+    print("[INFO] pour lancer le robot")
+    print("Utilise la commandes:")
+    print(" py -3.13 -m robotpy deploy")
     sys.exit(1)

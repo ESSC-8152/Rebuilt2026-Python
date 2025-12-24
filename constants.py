@@ -13,16 +13,17 @@ class NeoMotorConstants:
     kFreeSpeedRpm = 5676
 
 class DriveConstants:
-    kSpeedMuliplier = 0.6
+    kMultiplicateurVitesse = 0.6
 
-    # Paramêtre de driving - ce n'est pas vraiment la vitesse max du robot juste max allouée
+    # Paramêtre de driving - c'est pas vraiment la vitesse max du robot juste max allouée
     kMaxSpeedMetersPerSecond = 4.8
     kMaxAngularSpeed = 2 * math.pi  # radians par seconde
 
     kDirectionSlewRate = 1.2  # radians par seconde
     kMagnitudeSlewRate = 1.8  # pourcentage par seconde (1 = 100%)
     kRotationalSlewRate = 2.0  # pourcentage par seconde (1 = 100%)
-    # CConfiguration du châssis
+
+    # Configuration du châssis
     kTrackWidth = inchesToMeters(26.5)  # Distance entre les centres des roues droite et gauche sur le robot (mètres)
     kWheelBase = inchesToMeters(26.5)  # Distance entre les roues avant et arrière sur le robot (mètres)
 
@@ -59,7 +60,7 @@ class ModuleConstants:
     # robot qui conduit plus rapidement).
     kDrivingMotorPinionTeeth = 13
 
-    # Inveser l'encodeur de rotation, vu que l'arbre de sortie tourne dans la direction opposée du
+    # Inverser l'encodeur de rotation, vu que le shaft tourne dans la direction opposée du
     # moteur de direction dans un Swerve.
     kTurningEncoderInverted = True
 
@@ -100,15 +101,16 @@ class ModuleConstants:
     kTurningMotorCurrentLimit = 20  # ampères
     
 class OIConstants:
-    kDriverControllerPort = 0
-    kCopilotControllerPort = 1
-    kDriveDeadband = 0.05
+    # À vérifier avec les valeurs du Driver Station
+    kPortManetteConducteur = 0
+    kPortManetteCopilote = 1
+    kConduireDeadband = 0.05
 
 class AutoConstants:
-    kMaxSpeedMetersPerSecond = 3
-    kMaxAccelerationMetersPerSecondSquared = 3
-    kMaxAngularSpeedRadiansPerSecond = math.pi
-    kMaxAngularSpeedRadiansPerSecondSquared = math.pi
+    kMaxVitesseMetresParSecondes = 3
+    kMaxAccelerationMetresParSecondesCarre = 3
+    kMaxVitesseAngulaireRadiansParSeconde = math.pi
+    kMaxVitesseAngulaireRadiansParSecondeCarre = math.pi
 
     kPXController = 1
     kPYController = 1
@@ -116,7 +118,7 @@ class AutoConstants:
 
     # Contraintes pour le contrôleur d'angle profilé en mouvement du robot
     kThetaControllerConstraints = TrapezoidProfileRadians.Constraints(
-        kMaxAngularSpeedRadiansPerSecond, kMaxAngularSpeedRadiansPerSecondSquared
+        kMaxVitesseAngulaireRadiansParSeconde, kMaxVitesseAngulaireRadiansParSecondeCarre
     )
 
 

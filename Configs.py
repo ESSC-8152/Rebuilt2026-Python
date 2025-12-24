@@ -4,13 +4,18 @@ from rev import SparkMaxConfig, ClosedLoopConfig
 
 from constants import ModuleConstants
 
+#-------------------------------------------------------------------------------
+# Ne pas toucher à cette classe, sauf si une update de wpilib modifie comment
+# les swerves sont codés
+#-------------------------------------------------------------------------------
+
 class MAXSwerveModule:
     drivingConfig = SparkMaxConfig()
     turningConfig = SparkMaxConfig()
     
     drivingFactor = ModuleConstants.kWheelDiameterMeters * math.pi / ModuleConstants.kDrivingMotorReduction
     turningFactor = 2 * math.pi
-    drivingVelocityFeedForward = 1 / (ModuleConstants.kDriveWheelFreeSpeedRps)
+    drivingVelocityFeedForward = 1 / ModuleConstants.kDriveWheelFreeSpeedRps
     
     drivingConfig.setIdleMode(ModuleConstants.kDrivingMotorIdleMode)
     drivingConfig.smartCurrentLimit(ModuleConstants.kDrivingMotorCurrentLimit)
